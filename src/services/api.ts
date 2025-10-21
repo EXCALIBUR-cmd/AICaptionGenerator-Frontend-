@@ -1,34 +1,38 @@
 import axios from 'axios';
 
-// Use the correct backend URL
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-console.log('API URL:', API_URL);
+console.log('🔗 API URL:', API_URL);
 
 export const uploadImage = async (imageFile: File) => {
   try {
-    console.log("Uploading image to:", `${API_URL}/predict`);
+    const endpoint = `${API_URL}/predict`;
+    console.log("📤 Uploading to:", endpoint);
     
     const formData = new FormData();
     formData.append('image', imageFile);
     
-    const response = await axios.post(`${API_URL}/predict`, formData, {
+    const response = await axios.post(endpoint, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 30000
     });
     
-    console.log("Response from backend:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error uploading image:', error);
+    console.log("✅ Response:", response.data);
     
-    if (axios.isAxiosError(error)) {
-      console.error("Error status:", error.response?.status);
-      console.error("Error data:", error.response?.data);
-      console.error("Error message:", error.message);
+    // Validate response has caption
+    if (!response.data.caption) {
+      throw new Error('No caption in response');
     }
     
+    return response.data;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('❌ Error uploading image:', error.message);
+    } else {
+      console.error('❌ Error uploading image:', String(error));
+    }
     throw error;
   }
 };
